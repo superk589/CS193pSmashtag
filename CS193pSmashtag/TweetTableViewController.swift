@@ -28,6 +28,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     
     var searchText: String? {
         didSet {
+            lastTwitterRequest = nil
             searchTextField?.text = searchText
             searchTextField?.resignFirstResponder()
             tweets.removeAll()
@@ -47,23 +48,35 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     
     private var lastTwitterRequest: Twitter.Request?
     private func searchForTweets() {
-        if let request = twiiterRequest() {
+        if let request = lastTwitterRequest?.newer ?? twiiterRequest() {
             lastTwitterRequest = request
             request.fetchTweets({ [weak self] (newTweets) in
-                if request == self?.lastTwitterRequest {
-                    DispatchQueue.main.async {
-                        self?.tweets.insert(newTweets, at: 0)
-                        self?.tableView.insertSections([0], with: .fade)
+                DispatchQueue.main.async {
+                    if request == self?.lastTwitterRequest {
+                        self?.insertTweets(newTweets)
                     }
+                    self?.refreshControl?.endRefreshing()
                 }
             })
         }
     }
     
+    func insertTweets(_ newTweets: [Twitter.Tweet]) {
+        self.tweets.insert(newTweets, at: 0)
+        self.tableView.insertSections([0], with: .fade)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        let refreshControl = UIRefreshControl()
+        tableView.refreshControl = refreshControl
+        refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         tableView.estimatedRowHeight = tableView.rowHeight
         tableView.rowHeight = UITableViewAutomaticDimension
+    }
+    
+    func refresh(_ sender: UIRefreshControl) {
+        searchForTweets()
     }
     
     // MARK: - Table view data source
@@ -76,6 +89,10 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
         return tweets[section].count
+    }
+    
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return "\(tweets.count - section)"
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
