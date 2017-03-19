@@ -16,17 +16,13 @@ class SearchHistoryManager {
 
     static let shared = SearchHistoryManager()
     
-    private var searchTerms: [SearchTerm] {
-        didSet {
-            save()
-        }
-    }
+    private var searchTerms: [SearchTerm]
     
     private init() {
         self.searchTerms = (UserDefaults.standard.array(forKey: "Search Terms") as? [String] ?? [String]()).map({SearchTerm(keyword: $0)})
     }
     
-    func getRecent(count: Int) -> [SearchTerm]? {
+    func getRecent(count: Int) -> [SearchTerm] {
         return Array(searchTerms[0..<min(count, searchTerms.count)])
     }
     
@@ -42,6 +38,7 @@ class SearchHistoryManager {
         if searchTerms.count > 100 {
             searchTerms.removeLast()
         }
+        save()
     }
     
 }

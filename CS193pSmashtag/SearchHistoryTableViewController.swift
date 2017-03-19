@@ -16,7 +16,7 @@ class SearchHistoryTableViewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         searchTerms.removeAll()
-        searchTerms.append(contentsOf: SearchHistoryManager.shared.getRecent(count: 100) ?? [])
+        searchTerms.append(contentsOf: SearchHistoryManager.shared.getRecent(count: 100))
         tableView.reloadData()
     }
     

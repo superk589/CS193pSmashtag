@@ -46,7 +46,7 @@ class SmashTweetViewController: TweetTableViewController {
                 }
                 if let tweeterCount = try? context.count(for: TwitterUser.fetchRequest()) {
                     print("\(tweeterCount) tweeters in database")
-                }                
+                }
             }
         }
     }

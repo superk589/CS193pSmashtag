@@ -52,14 +52,18 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     private func searchForTweets() {
         if let request = lastTwitterRequest?.newer ?? twiiterRequest() {
             lastTwitterRequest = request
-            request.fetchTweets({ [weak self] (newTweets) in
-                DispatchQueue.main.async {
-                    if request == self?.lastTwitterRequest {
-                        self?.insertTweets(newTweets)
+            DispatchQueue.global(qos: .userInitiated).async {
+                request.fetchTweets({ [weak self] (newTweets) in
+                    DispatchQueue.main.async {
+                        if request == self?.lastTwitterRequest {
+                            self?.insertTweets(newTweets)
+                        }
+                        self?.refreshControl?.endRefreshing()
                     }
-                    self?.refreshControl?.endRefreshing()
-                }
-            })
+                })
+            }
+        } else {
+            self.refreshControl?.endRefreshing()
         }
     }
     
@@ -75,6 +79,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
         refreshControl.addTarget(self, action: #selector(refresh(_:)), for: .valueChanged)
         tableView.estimatedRowHeight = tableView.rowHeight
         tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.keyboardDismissMode = .onDrag
     }
     
     func refresh(_ sender: UIRefreshControl) {
