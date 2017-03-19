@@ -16,6 +16,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     @IBOutlet weak var searchTextField: UITextField! {
         didSet {
             searchTextField.delegate = self
+            searchTextField.text = searchText
         }
     }
     
@@ -41,6 +42,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     
     func twiiterRequest() -> Twitter.Request? {
         if let query = searchText, !query.isEmpty {
+            SearchHistoryManager.shared.insert(SearchTerm(keyword: query))
             return Request.init(search: query, count: 100)
         }
         return nil

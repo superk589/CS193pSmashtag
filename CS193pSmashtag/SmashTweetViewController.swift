@@ -57,6 +57,11 @@ class SmashTweetViewController: TweetTableViewController {
                 vc.mention = searchText
                 vc.container = container
             }
+        } else if segue.identifier == "Tweet Detail" {
+            if let vc = segue.destination as? TweetDetailTableViewController,
+                let cell = sender as? TweetTableViewCell {
+                vc.tweet = cell.tweet
+            }
         }
     }
 }

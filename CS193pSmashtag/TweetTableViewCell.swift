@@ -16,15 +16,36 @@ class TweetTableViewCell: UITableViewCell {
     @IBOutlet weak var tweetUserLabel: UILabel!
     @IBOutlet weak var tweetTextLable: UILabel!
     
-    var tweet: Twitter.Tweet? {didSet {updateUI() } }
+    var tweet: Twitter.Tweet? { didSet {updateUI() } }
     
     private func updateUI() {
-        tweetTextLable.text = tweet?.text
+        if let tweet = tweet {
+            let attributeText = NSMutableAttributedString(string: tweet.text)
+            for mention in tweet.userMentions {
+                attributeText.addAttributes([NSForegroundColorAttributeName: UIColor.brown], range: mention.nsrange)
+            }
+            for mention in tweet.hashtags {
+                attributeText.addAttributes([NSForegroundColorAttributeName: UIColor.green], range: mention.nsrange)
+            }
+            for mention in tweet.urls {
+                attributeText.addAttributes([NSForegroundColorAttributeName: UIColor.blue], range: mention.nsrange)
+            }
+            
+            tweetTextLable.attributedText = attributeText
+        }
+        
         tweetUserLabel.text = tweet?.user.description
         
+        tweetProfileImageView.image = nil
         if let profileImageURL = tweet?.user.profileImageURL {
-            if let imageData = try? Data(contentsOf: profileImageURL) {
-                tweetProfileImageView.image = UIImage(data: imageData)
+            DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+                if let imageData = try? Data(contentsOf: profileImageURL) {
+                    DispatchQueue.main.async {
+                        if profileImageURL == self?.tweet?.user.profileImageURL {
+                            self?.tweetProfileImageView.image = UIImage(data: imageData)
+                        }
+                    }
+                }
             }
         } else {
             tweetProfileImageView.image = nil
